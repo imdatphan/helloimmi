@@ -1,0 +1,48 @@
+const puppeteer = require("puppeteer");
+const schedule = require("node-schedule");
+const nodemailer = require("nodemailer");
+const job = schedule.scheduleJob("* */1 * * *", () => {
+  (async () => {
+    const browser = await puppeteer.launch({
+      headless: false,
+    });
+    const page = await browser.newPage();
+    const URL =
+      "https://immi.homeaffairs.gov.au/what-we-do/whm-program/status-of-country-caps?fbclid=IwAR34zh4ZbaGlo5803-7x8rFSm1XpCvyXGthLXejxQsFFVDnaCYSAKXR_Lz0";
+
+    await page.goto(URL, { waitUntil: "load" });
+    const data = await page.evaluate(() => {
+      const tds = Array.from(document.querySelectorAll("table tr td"));
+      return tds.map((td) => td.innerText);
+    });
+    // sending email function
+
+    function notifyAustralia() {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: "tandatk37ueh@gmail.com",
+          pass: "aoxrmqdobsiqytqq",
+        },
+      });
+      var mailOptions = {
+        from: "tandatk37ueh@gmail.com",
+        to: "datphandev@gmail.com",
+        subject: "Cổng Immi đã mở",
+        text: "Nộp đơn ngay đi",
+      };
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          console.log(error);
+        } else {
+        }
+      });
+    }
+
+    if ((data[105] = "SUSPENDED**")) {
+      await browser.close();
+    } else {
+      notifyAustralia();
+    }
+  })();
+});
